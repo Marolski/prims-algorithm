@@ -1,0 +1,3 @@
+﻿dodawanie wierzchołka - kliknij w dowolnym miejscu lewym przyciskiem myszy
+usuwanie wierzchołka - najedź na wierzchołek i wciśnij "d"
+mianowanie wierzchołka na startowy - najedź na wierzchołek i wciśnij "s"
