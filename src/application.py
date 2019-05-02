@@ -4,6 +4,8 @@ class Application:
 
     def __init__(self):   
         self.screen = pygame.display.set_mode((960,600)) 
+        pygame.display.set_caption('Oszczedne połaczenie zabudowan we wsi')
+        pygame.display.set_icon(pygame.image.load('icon.png'))
         self.vertices = pygame.sprite.Group() 
         self.display()
 
