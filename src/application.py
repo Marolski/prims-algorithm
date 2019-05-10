@@ -1,4 +1,5 @@
 import pygame
+import math
 
 class Application:
 
@@ -6,6 +7,7 @@ class Application:
         self.screen = pygame.display.set_mode((960,600)) 
         pygame.display.set_caption('Oszczedne połaczenie zabudowan we wsi')
         pygame.display.set_icon(pygame.image.load('icon.png'))
+        pygame.font.init()
         self.vertices = pygame.sprite.Group() 
         self.edges = []
         self.display()
@@ -15,8 +17,9 @@ class Application:
         self.starting_vertex = None
         edge_being_drawn = False
         current_edge = None
-        typing_in_weight = False
-        current_weight = None
+        distanceList = []
+        distance = None
+        font = pygame.font.SysFont("comicsansms", 15)
 
 
         
@@ -63,6 +66,8 @@ class Application:
                             edge_has_beginning_same_as_end = True
                         if (edge_is_complete) and (not edge_already_exists) and (not edge_has_beginning_same_as_end):
                             current_edge.set_vertex_end(found_vertex)
+                            distance = math.floor(math.sqrt(((e.vertex_beginning.x-found_vertex.x)**2)+((e.vertex_beginning.y-found_vertex.y)**2))/40)
+                            distanceList.append(distance)
                         else:
                             self.edges.remove(current_edge)
                             current_edge = None
@@ -92,6 +97,8 @@ class Application:
                                 self.edges.remove(e)
                                 e = None
                             v.kill()
+                
+
                             
                             
             if edge_being_drawn:
@@ -100,6 +107,11 @@ class Application:
                             
             for e in self.edges:
                 e.draw(self.screen)
+                for d in distanceList:
+                    d = str(d)
+                    text = font.render(d, True, (0, 0, 0))
+                    self.screen.blit(text,e.distance_rectangle(e.vertex_beginning,e.vertex_end))
+                
 
             self.vertices.draw(self.screen)
             
@@ -148,6 +160,12 @@ class Edge:
     def set_vertex_end(self, vertex_end):
         self.vertex_end = vertex_end
         self.position_end = (vertex_end.x, vertex_end.y)
+    def distance_rectangle(self,vertex_beginning, vertex_end):
+        surface = (((self.vertex_beginning.x + self.vertex_end.x)/2),((self.vertex_beginning.y+self.vertex_end.y)/2))
+        return surface
+        
+
+
         
     
         
