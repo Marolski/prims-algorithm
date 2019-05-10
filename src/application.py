@@ -82,13 +82,15 @@ class Application:
                                 v.set_type(True)   
                 #obsługa wciśnięcia "d"
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
-                    print(len(self.edges))
                     for v in self.vertices:
                         if v.rect.collidepoint(pygame.mouse.get_pos()):
+                            edges_to_remove = []
                             for e in self.edges:
                                 if (e.vertex_beginning is v) or (e.vertex_end is v):
-                                    self.edges.remove(e)
-                                    e = None
+                                    edges_to_remove.append(e)
+                            for e in edges_to_remove:                                    
+                                self.edges.remove(e)
+                                e = None
                             v.kill()
                             
                             
