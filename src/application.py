@@ -63,8 +63,6 @@ class Application:
                             edge_has_beginning_same_as_end = True
                         if (edge_is_complete) and (not edge_already_exists) and (not edge_has_beginning_same_as_end):
                             current_edge.set_vertex_end(found_vertex)
-                            current_edge.weigth = current_edge.set_weigth(current_edge.vertex_beginning, found_vertex)
-                            print(current_edge.weigth)
                         else:
                             self.edges.remove(current_edge)
                             current_edge = None
@@ -144,33 +142,26 @@ class Edge:
         self.position_beginning = position_beginning
         self.position_end = position_end
         self.visible = True
-        self.weigth = None
+        self.weight = None
     def update_position(self, position_beginning, position_end):
         self.position_beginning = position_beginning
         self.position_end = position_end
+        self.update_weight(position_beginning, position_end)
     def set_vertex_end(self, vertex_end):
         self.vertex_end = vertex_end
-        self.position_end = (vertex_end.x, vertex_end.y)
-    def set_weigth(self,vertex_beginning, vertex_end):
-        distance = math.floor(math.sqrt(((self.vertex_end.x - self.vertex_beginning.x)**2)+((self.vertex_end.y-self.vertex_beginning.y)**2))/35)
-        return distance
+        self.position_end = (self.vertex_end.x, self.vertex_end.y)
+    def update_weight(self, position_beginning, position_end):
+        (x1, y1) = position_beginning
+        (x2, y2) = position_end
+        self.weight = round(math.sqrt((x1 - x2)**2+(y1-y2)**2)/35, 2)
     def draw(self, surface):
         if self.visible == True:
             set_font = pygame.font.SysFont("comicsansms", 15)
-            text = set_font.render(str(self.weigth), True, (255, 0, 0))
+            text = set_font.render(str(self.weight) + "[m]", True, (255, 0, 0))
             screen = (((self.position_beginning[0] + self.position_end[0])/2),((self.position_beginning[1]+self.position_end[1])/2))
             surface.blit(text,screen)
             pygame.draw.line(surface, (0,0,0), self.position_beginning, self.position_end, 3)
-        
-
-
-        
-    
-        
-        
-    
-        
-        
+         
         
 #tu jest jakby main, tworzę nowe okno programu
 application = Application()        
