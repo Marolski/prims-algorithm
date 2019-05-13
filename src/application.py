@@ -17,9 +17,6 @@ class Application:
         self.starting_vertex = None
         edge_being_drawn = False
         current_edge = None
-        distanceList = []
-        distance = None
-        font = pygame.font.SysFont("comicsansms", 15)
 
 
         
@@ -66,8 +63,8 @@ class Application:
                             edge_has_beginning_same_as_end = True
                         if (edge_is_complete) and (not edge_already_exists) and (not edge_has_beginning_same_as_end):
                             current_edge.set_vertex_end(found_vertex)
-                            distance = math.floor(math.sqrt(((e.vertex_beginning.x-found_vertex.x)**2)+((e.vertex_beginning.y-found_vertex.y)**2))/40)
-                            distanceList.append(distance)
+                            current_edge.weigth = current_edge.set_weigth(current_edge.vertex_beginning, found_vertex)
+                            print(current_edge.weigth)
                         else:
                             self.edges.remove(current_edge)
                             current_edge = None
@@ -107,10 +104,6 @@ class Application:
                             
             for e in self.edges:
                 e.draw(self.screen)
-                for d in distanceList:
-                    d = str(d)
-                    text = font.render(d, True, (0, 0, 0))
-                    self.screen.blit(text,e.distance_rectangle(e.vertex_beginning,e.vertex_end))
                 
 
             self.vertices.draw(self.screen)
@@ -151,18 +144,23 @@ class Edge:
         self.position_beginning = position_beginning
         self.position_end = position_end
         self.visible = True
-    def draw(self, surface):
-        if self.visible == True:
-            pygame.draw.line(surface, (0,0,0), self.position_beginning, self.position_end, 3)
+        self.weigth = None
     def update_position(self, position_beginning, position_end):
         self.position_beginning = position_beginning
         self.position_end = position_end
     def set_vertex_end(self, vertex_end):
         self.vertex_end = vertex_end
         self.position_end = (vertex_end.x, vertex_end.y)
-    def distance_rectangle(self,vertex_beginning, vertex_end):
-        surface = (((self.vertex_beginning.x + self.vertex_end.x)/2),((self.vertex_beginning.y+self.vertex_end.y)/2))
-        return surface
+    def set_weigth(self,vertex_beginning, vertex_end):
+        distance = math.floor(math.sqrt(((self.vertex_end.x - self.vertex_beginning.x)**2)+((self.vertex_end.y-self.vertex_beginning.y)**2))/35)
+        return distance
+    def draw(self, surface):
+        if self.visible == True:
+            set_font = pygame.font.SysFont("comicsansms", 15)
+            text = set_font.render(str(self.weigth), True, (255, 0, 0))
+            screen = (((self.position_beginning[0] + self.position_end[0])/2),((self.position_beginning[1]+self.position_end[1])/2))
+            surface.blit(text,screen)
+            pygame.draw.line(surface, (0,0,0), self.position_beginning, self.position_end, 3)
         
 
 
