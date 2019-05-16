@@ -94,8 +94,16 @@ class Application:
                             v.kill()
                 
 
-                            
-                            
+            #Przykład wywołania kolejki                 
+            myQueue = PriorityQueue() 
+            myQueue.insert(12) 
+            myQueue.insert(1) 
+            myQueue.insert(14) 
+            myQueue.insert(7) 
+            print(myQueue)         
+            while not myQueue.isEmpty(): 
+                print(myQueue.delete())
+
             if edge_being_drawn:
                 current_edge.update_position(current_edge.position_beginning, pygame.mouse.get_pos())
                 
@@ -161,6 +169,33 @@ class Edge:
             screen = (((self.position_beginning[0] + self.position_end[0])/2),((self.position_beginning[1]+self.position_end[1])/2))
             surface.blit(text,screen)
             pygame.draw.line(surface, (0,0,0), self.position_beginning, self.position_end, 3)
+
+
+class PriorityQueue(object): 
+    def __init__(self): 
+        self.queue = [] 
+  
+  #wyświetla elementy kolejki oddzielone spacja
+    def __str__(self): 
+        return ' '.join([str(i) for i in self.queue]) 
+  
+    # sprawdzanie czy kolejka jest pusta
+    def isEmpty(self): 
+        return len(self.queue) == [] 
+  
+    # wstawianie elementu do kolejki
+    def insert(self, data): 
+        self.queue.append(data) 
+  
+    # zwraca elementy w koelejności rosnącej
+    def delete(self):  
+            max = 0
+            for i in range(len(self.queue)-1): 
+                if self.queue[i] < self.queue[max]: 
+                    max = i 
+            item = self.queue[max] 
+            del self.queue[max] 
+            return item 
          
         
 #tu jest jakby main, tworzę nowe okno programu
