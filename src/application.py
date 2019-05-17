@@ -181,7 +181,7 @@ class PriorityQueue(object):
   
     # sprawdzanie czy kolejka jest pusta
     def isEmpty(self): 
-        return len(self.queue) == [] 
+        return len(self.queue) == 0 
   
     # wstawianie elementu do kolejki
     def insert(self, data): 
@@ -190,12 +190,12 @@ class PriorityQueue(object):
     # zwraca elementy w koelejności rosnącej
     def delete(self):  
             max = 0
-            for i in range(len(self.queue)-1): 
+            for i in range(len(self.queue)): 
                 if self.queue[i] < self.queue[max]: 
                     max = i 
             item = self.queue[max] 
             del self.queue[max] 
-            return item 
+            return item
          
         
 #tu jest jakby main, tworzę nowe okno programu
