@@ -10,9 +10,9 @@ class Application:
         pygame.font.init()
         self.vertices = pygame.sprite.Group() 
         self.edges = []
-        self.display()
+        self.build_graph()
 
-    def display(self):
+    def build_graph(self):
         continue_work = True 
         self.starting_vertex = None
         edge_being_drawn = False
@@ -63,6 +63,8 @@ class Application:
                             edge_has_beginning_same_as_end = True
                         if (edge_is_complete) and (not edge_already_exists) and (not edge_has_beginning_same_as_end):
                             current_edge.set_vertex_end(found_vertex)
+                            current_edge.vertex_beginning.add_adjacent(found_vertex, current_edge.weight)
+                            found_vertex.add_adjacent(current_edge.vertex_beginning, current_edge.weight)
                         else:
                             self.edges.remove(current_edge)
                             current_edge = None
@@ -92,17 +94,22 @@ class Application:
                                 self.edges.remove(e)
                                 e = None
                             v.kill()
+                    for e in self.edges:
+                        if e.detect_edge_rectangle.collidepoint(pygame.mouse.get_pos()):
+                            if e.vertex_end is not None:
+                                for v in e.vertex_beginning.adjacent:
+                                    if v is e.vertex_end:
+                                        e.vertex_beginning.adjacent.remove(v)
+                                for v in e.vertex_end.adjacent:
+                                    if v is e.vertex_beginning:
+                                        e.vertex_beginning.adjacent.remove(v)
+                            self.edges.remove(e)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN and not edge_being_drawn:
+                    p = Prim(self.vertices, self.edges)
+                    p.process_graph()
+                    self.draw_minimum_spanning_tree()
                 
 
-            #Przykład wywołania kolejki                 
-            myQueue = PriorityQueue() 
-            myQueue.insert(12) 
-            myQueue.insert(1) 
-            myQueue.insert(14) 
-            myQueue.insert(7) 
-            print(myQueue)         
-            while not myQueue.isEmpty(): 
-                print(myQueue.delete())
 
             if edge_being_drawn:
                 current_edge.update_position(current_edge.position_beginning, pygame.mouse.get_pos())
@@ -111,12 +118,29 @@ class Application:
             for e in self.edges:
                 e.draw(self.screen)
                 
-
             self.vertices.draw(self.screen)
             
             pygame.display.flip()
-
-        pygame.quit()   
+            
+        pygame.quit()
+           
+    
+    def draw_minimum_spanning_tree(self):
+        display_minimum_spanning_tree = True
+        while display_minimum_spanning_tree:
+            self.screen.fill((90, 209, 54))
+            for event in pygame.event.get():
+                #obsługa kliknięcia na krzyżyk
+                if event.type == pygame.QUIT:
+                    display_minimum_spanning_tree = False
+                    self.continue_work = False
+        
+            for e in self.edges:
+               e.draw(self.screen)     
+            self.vertices.draw(self.screen)
+            
+            pygame.display.flip()
+        return
     
 
 
@@ -126,6 +150,10 @@ class Vertex(pygame.sprite.Sprite):
         (self.x, self.y) = position
         self.set_type(False)
         self.adjacent = []
+        
+        #zmienne tylko i wylacznie do algorytmu
+        self.cost = None
+        self.connecting_edge = None
         
     def set_type(self, is_starting_vertex):
         self.is_starting_vertex = is_starting_vertex
@@ -151,6 +179,7 @@ class Edge:
         self.position_end = position_end
         self.visible = True
         self.weight = None
+        self.detect_edge_rectangle = None
     def update_position(self, position_beginning, position_end):
         self.position_beginning = position_beginning
         self.position_end = position_end
@@ -166,12 +195,13 @@ class Edge:
         if self.visible == True:
             set_font = pygame.font.SysFont("comicsansms", 15)
             text = set_font.render(str(self.weight) + "[m]", True, (255, 0, 0))
-            screen = (((self.position_beginning[0] + self.position_end[0])/2),((self.position_beginning[1]+self.position_end[1])/2))
-            surface.blit(text,screen)
+            weight_display_position = (((self.position_beginning[0] + self.position_end[0])/2),((self.position_beginning[1]+self.position_end[1])/2))
+            surface.blit(text,weight_display_position)
+            self.detect_edge_rectangle = pygame.Rect(weight_display_position[0]-30, weight_display_position[1]-30, 60, 60)
             pygame.draw.line(surface, (0,0,0), self.position_beginning, self.position_end, 3)
 
 
-class PriorityQueue(object): 
+class PriorityQueue: 
     def __init__(self): 
         self.queue = [] 
   
@@ -180,23 +210,59 @@ class PriorityQueue(object):
         return ' '.join([str(i) for i in self.queue]) 
   
     # sprawdzanie czy kolejka jest pusta
-    def isEmpty(self): 
+    def is_empty(self): 
         return len(self.queue) == 0 
   
     # wstawianie elementu do kolejki
     def insert(self, data): 
         self.queue.append(data) 
   
-    # zwraca elementy w koelejności rosnącej
+    # zwraca najmniejszy element
     def delete(self):  
-            max = 0
+            min = 0
             for i in range(len(self.queue)): 
-                if self.queue[i] < self.queue[max]: 
-                    max = i 
-            item = self.queue[max] 
-            del self.queue[max] 
+                if self.queue[i].cost < self.queue[min].cost: 
+                    min = i 
+            item = self.queue[min] 
+            del self.queue[min] 
             return item
+            
+            
+class Prim:
+    def __init__(self, vertices, edges):
+        self.vertices = vertices
+        self.edges = edges
+    #funkcja która przeprowadza algorytm Prima i czyni wszystkie krawędzie
+    #nienależące do MDR niewidzialnymi
+    def process_graph(self):
+        que = PriorityQueue()
+        for v in self.vertices:            
+            if v.is_starting_vertex:
+                v.cost = 0 
+            else:
+                v.cost = float("inf")
+            que.insert(v)  
+        while not que.is_empty():
+            u = que.delete()
+            for v in u.adjacent:
+                edge = self.find_edge(u, v)
+                if (edge is not None) and (v in que) and (v.cost > edge.weight):
+                    v.cost = edge.weight
+                    v.connecting_edge = edge
+        for e in self.edges:
+            e.visible = False
+        for v in self.vertices:
+            if v.connecting_edge is not None:
+                v.connecting_edge.visible = True
+        
+    def find_edge(self, vertex_beginning, vertex_end):
+        for e in self.edges:
+            if ((e.vertex_beginning is vertex_beginning) and (e.vertex_end is vertex_end)) or ((e.vertex_beginning is vertex_end) and (e.vertex_end is vertex_beginning)):
+                return e
+               
+        
          
         
 #tu jest jakby main, tworzę nowe okno programu
+pygame.init()
 application = Application()        
