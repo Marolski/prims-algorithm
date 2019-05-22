@@ -5,3 +5,4 @@ dodawanie krawedzi - trzymajac prawy przycisk myszy przeciagnij linie od jednego
 resetowanie grafu - r
 przelaczanie pomiedzy trybem edycji/MDR - enter
 ukryj/pokaz wagi - w
+polacz wszystkie wierzcholki - a
