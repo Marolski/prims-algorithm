@@ -13,7 +13,7 @@ class Application:
         
         self.continue_work = True 
         self.starting_vertex = None
-        self.display_weight = True
+        self.display_weight = False
         
         self.build_graph()
 
@@ -108,6 +108,29 @@ class Application:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                     self.vertices = pygame.sprite.Group() 
                     self.edges = [] 
+                
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_a:
+                    for v in self.vertices:
+                        v.adjacent = []
+                    self.edges = []
+                    
+                    
+                    for v1 in self.vertices:
+                        for v2 in self.vertices:
+                            if v2 is not v1:
+                                already_exists = False
+                                for e in self.edges:
+                                    if ((e.vertex_beginning is v1 and e.vertex_end is v2) or (e.vertex_beginning is v2 and e.vertex_end is v1)):
+                                        already_exists = True
+                                if not already_exists:
+                                    v1.add_adjacent(v2)
+                                    v2.add_adjacent(v1)
+                                    e = Edge((v1.x,v1.y), (v2.x, v2.y), v1)
+                                    e.set_vertex_end(v2)
+                                    e.update_position(v1.position,v2.position)
+                                    self.edges.append(e)
+                                
+                    
                     
                     
                 
@@ -121,8 +144,7 @@ class Application:
                 e.draw(self.screen, self.display_weight)
                 
             self.vertices.draw(self.screen)
-            self.write_information("Budowanie grafu:",self.screen)
-            self.write_instruction("r - resetuj graf  |  enter - wyswietl MDR  |  w - pokaz/ukryj wagi (przyspiesza dzialanie)",self.screen)
+            self.write_information("Tryb edycji grafu:",self.screen)
             pygame.display.flip() 
             
         pygame.quit()
@@ -137,7 +159,7 @@ class Application:
                 if event.type == pygame.QUIT:
                     self.continue_work = False
                     return
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                     for e in self.edges:
                         e.visible=True
                     return
@@ -153,8 +175,7 @@ class Application:
             for e in self.edges:
                e.draw(self.screen, self.display_weight)     
             self.vertices.draw(self.screen)
-            self.write_information("Minimalne drzewo rozpinajace:",self.screen)
-            self.write_instruction("r - resetuj graf  |  escape - powroc do edycji  |  w - pokaz/ukryj wagi",self.screen)
+            self.write_information("Tryb wyswietlania MDR:",self.screen)
             pygame.display.flip()
         
     def write_information(self, information, surface):
@@ -162,12 +183,6 @@ class Application:
             text = set_font.render(information, True, (11, 25, 250))
             position = (10, 10)
             surface.blit(text,position)
-    def write_instruction(self, information, surface):
-            set_font = pygame.font.SysFont("comicsansms", 15)
-            text = set_font.render(information, True, (240, 25, 10))
-            position = (10, 40)
-            surface.blit(text,position)
-        
             
     
 
@@ -178,6 +193,7 @@ class Vertex(pygame.sprite.Sprite):
     def __init__(self, position):
         pygame.sprite.Sprite.__init__(self)
         (self.x, self.y) = position
+        self.position = position
         self.set_type(False)
         self.adjacent = []
         
