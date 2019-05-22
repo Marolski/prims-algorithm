@@ -1,3 +1,8 @@
 ﻿dodawanie wierzchołka - kliknij w dowolnym miejscu lewym przyciskiem myszy
 usuwanie wierzchołka - najedź na wierzchołek i wciśnij "d"
 mianowanie wierzchołka na startowy - najedź na wierzchołek i wciśnij "s"
+dodawanie krawedzi - trzymajac prawy przycisk myszy przeciagnij linie od jednego domku do drugiego
+resetowanie grafu - r
+wyswietlenie MDR - enter
+powrot do edycji grafu po wyswietleniu MDR - escape
+ukryj/pokaz wagi - w

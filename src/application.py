@@ -10,17 +10,19 @@ class Application:
         pygame.font.init()
         self.vertices = pygame.sprite.Group() 
         self.edges = []
-        self.build_graph()
-
-    def build_graph(self):
+        
         self.continue_work = True 
         self.starting_vertex = None
+        self.display_weight = True
+        
+        self.build_graph()
+
+
+    def build_graph(self):
         edge_being_drawn = False
         current_edge = None
-
-
         
-        
+ 
         while self.continue_work:
         
             self.screen.fill((90, 209, 54))
@@ -63,8 +65,9 @@ class Application:
                             edge_has_beginning_same_as_end = True
                         if (edge_is_complete) and (not edge_already_exists) and (not edge_has_beginning_same_as_end):
                             current_edge.set_vertex_end(found_vertex)
-                            current_edge.vertex_beginning.add_adjacent(found_vertex)
-                            found_vertex.add_adjacent(current_edge.vertex_beginning)
+                            current_edge.vertex_beginning.add_adjacent(current_edge.vertex_end)
+                            current_edge.vertex_end.add_adjacent(current_edge.vertex_beginning)
+                            
                         else:
                             self.edges.remove(current_edge)
                             current_edge = None
@@ -94,20 +97,19 @@ class Application:
                                 self.edges.remove(e)
                                 e = None
                             v.kill()
-                    for e in self.edges:
-                        if e.detect_edge_rectangle.collidepoint(pygame.mouse.get_pos()):
-                            if e.vertex_end is not None:
-                                for v in e.vertex_beginning.adjacent:
-                                    if v is e.vertex_end:
-                                        e.vertex_beginning.adjacent.remove(v)
-                                for v in e.vertex_end.adjacent:
-                                    if v is e.vertex_beginning:
-                                        e.vertex_beginning.adjacent.remove(v)
-                            self.edges.remove(e)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN and not edge_being_drawn:
                     p = Prim(self.vertices, self.edges)
                     p.process_graph()
                     self.draw_minimum_spanning_tree()
+                    
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_w:
+                    self.display_weight = not self.display_weight
+                    
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                    self.vertices = pygame.sprite.Group() 
+                    self.edges = [] 
+                    
+                    
                 
 
 
@@ -116,11 +118,12 @@ class Application:
                 
                             
             for e in self.edges:
-                e.draw(self.screen)
+                e.draw(self.screen, self.display_weight)
                 
             self.vertices.draw(self.screen)
-            
-            pygame.display.flip()
+            self.write_information("Budowanie grafu:",self.screen)
+            self.write_instruction("r - resetuj graf  |  enter - wyswietl MDR  |  w - pokaz/ukryj wagi (przyspiesza dzialanie)",self.screen)
+            pygame.display.flip() 
             
         pygame.quit()
            
@@ -134,12 +137,40 @@ class Application:
                 if event.type == pygame.QUIT:
                     self.continue_work = False
                     return
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    for e in self.edges:
+                        e.visible=True
+                    return
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_w:
+                    self.display_weight = not self.display_weight
+                    
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                    self.vertices = pygame.sprite.Group() 
+                    self.edges = []
+                    return
+                    
         
             for e in self.edges:
-               e.draw(self.screen)     
+               e.draw(self.screen, self.display_weight)     
             self.vertices.draw(self.screen)
-            
+            self.write_information("Minimalne drzewo rozpinajace:",self.screen)
+            self.write_instruction("r - resetuj graf  |  escape - powroc do edycji  |  w - pokaz/ukryj wagi",self.screen)
             pygame.display.flip()
+        
+    def write_information(self, information, surface):
+            set_font = pygame.font.SysFont("comicsansms", 20)
+            text = set_font.render(information, True, (11, 25, 250))
+            position = (10, 10)
+            surface.blit(text,position)
+    def write_instruction(self, information, surface):
+            set_font = pygame.font.SysFont("comicsansms", 15)
+            text = set_font.render(information, True, (240, 25, 10))
+            position = (10, 40)
+            surface.blit(text,position)
+        
+            
+    
+
     
 
 
@@ -168,17 +199,17 @@ class Vertex(pygame.sprite.Sprite):
         self.rect.y = self.y - self.rect.height/2  
     
     def add_adjacent(self, vertex):
-        self.adjacent.append((vertex))
+        self.adjacent.append(vertex)
 
 
 class Edge:
     def __init__(self, position_beginning, position_end, vertex_beginning):
         self.vertex_beginning = vertex_beginning
+        self.vertex_end = None
         self.position_beginning = position_beginning
         self.position_end = position_end
         self.visible = True
         self.weight = None
-        self.detect_edge_rectangle = None
     def update_position(self, position_beginning, position_end):
         self.position_beginning = position_beginning
         self.position_end = position_end
@@ -189,15 +220,16 @@ class Edge:
     def update_weight(self, position_beginning, position_end):
         (x1, y1) = position_beginning
         (x2, y2) = position_end
-        self.weight = round(math.sqrt((x1 - x2)**2+(y1-y2)**2)/35, 2)
-    def draw(self, surface):
+        self.weight = round(math.sqrt((x1 - x2)**2+(y1-y2)**2)/10, 2)
+    def draw(self, surface, display_weight):
         if self.visible == True:
-            set_font = pygame.font.SysFont("comicsansms", 15)
-            text = set_font.render(str(self.weight) + "[m]", True, (255, 0, 0))
-            weight_display_position = (((self.position_beginning[0] + self.position_end[0])/2),((self.position_beginning[1]+self.position_end[1])/2))
-            surface.blit(text,weight_display_position)
-            self.detect_edge_rectangle = pygame.Rect(weight_display_position[0]-30, weight_display_position[1]-30, 60, 60)
-            pygame.draw.line(surface, (0,0,0), self.position_beginning, self.position_end, 3)
+            pygame.draw.aaline(surface, (0,0,0), self.position_beginning, self.position_end, 1)
+            if display_weight:
+                set_font = pygame.font.SysFont("comicsansms", 15)
+                text = set_font.render(str(self.weight) + "[m]", True, (255, 0, 0))
+                weight_display_position = (((self.position_beginning[0] + self.position_end[0])/2),((self.position_beginning[1]+self.position_end[1])/2))
+                surface.blit(text,weight_display_position)
+            
 
 
 class PriorityQueue: 
