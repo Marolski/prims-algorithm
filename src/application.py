@@ -13,7 +13,7 @@ class Application:
         self.build_graph()
 
     def build_graph(self):
-        continue_work = True 
+        self.continue_work = True 
         self.starting_vertex = None
         edge_being_drawn = False
         current_edge = None
@@ -21,13 +21,13 @@ class Application:
 
         
         
-        while continue_work:
+        while self.continue_work:
         
             self.screen.fill((90, 209, 54))
             for event in pygame.event.get():
                 #obsługa kliknięcia na krzyżyk
                 if event.type == pygame.QUIT:
-                    continue_work = False
+                    self.continue_work = False
                 #obsługa kliknięcia LPM
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     add_new = True
@@ -63,8 +63,8 @@ class Application:
                             edge_has_beginning_same_as_end = True
                         if (edge_is_complete) and (not edge_already_exists) and (not edge_has_beginning_same_as_end):
                             current_edge.set_vertex_end(found_vertex)
-                            current_edge.vertex_beginning.add_adjacent(found_vertex, current_edge.weight)
-                            found_vertex.add_adjacent(current_edge.vertex_beginning, current_edge.weight)
+                            current_edge.vertex_beginning.add_adjacent(found_vertex)
+                            found_vertex.add_adjacent(current_edge.vertex_beginning)
                         else:
                             self.edges.remove(current_edge)
                             current_edge = None
@@ -132,15 +132,14 @@ class Application:
             for event in pygame.event.get():
                 #obsługa kliknięcia na krzyżyk
                 if event.type == pygame.QUIT:
-                    display_minimum_spanning_tree = False
                     self.continue_work = False
+                    return
         
             for e in self.edges:
                e.draw(self.screen)     
             self.vertices.draw(self.screen)
             
             pygame.display.flip()
-        return
     
 
 
@@ -168,8 +167,8 @@ class Vertex(pygame.sprite.Sprite):
         self.rect.x = self.x - self.rect.width/2
         self.rect.y = self.y - self.rect.height/2  
     
-    def add_adjacent(self, vertex, weight):
-        self.adjacent.append((vertex,weight))
+    def add_adjacent(self, vertex):
+        self.adjacent.append((vertex))
 
 
 class Edge:
@@ -227,6 +226,10 @@ class PriorityQueue:
             del self.queue[min] 
             return item
             
+    #sprawdza czy kolejka zawiera podany wektor
+    def contains(self, v):
+        return v in self.queue
+            
             
 class Prim:
     def __init__(self, vertices, edges):
@@ -246,7 +249,7 @@ class Prim:
             u = que.delete()
             for v in u.adjacent:
                 edge = self.find_edge(u, v)
-                if (edge is not None) and (v in que) and (v.cost > edge.weight):
+                if (edge is not None) and (que.contains(v)) and (v.cost > edge.weight):
                     v.cost = edge.weight
                     v.connecting_edge = edge
         for e in self.edges:
